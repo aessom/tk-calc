@@ -1,24 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from functools import partial
-from enum import Enum
-
-GRID_LABELS = [
-    ["C", "CE", "^", ""],
-    [7, 8, 9, "÷"],
-    [4, 5, 6, "×"],
-    [1, 2, 3, "-"],
-    [0, ".", "=", "+"]
-]
-
-OPERATORS = ["+", "-", "×", "÷", "^"]
-
-class State(Enum):
-    FIRST_NUMBER = 1
-    OPERATOR = 2
-    SECOND_NUMBER = 3
-    RESULT = 4
-
+from constants import *
 
 current_state = State.FIRST_NUMBER
 first_number = 0
@@ -28,7 +11,9 @@ result = 0
 
 
 def button_press(button):
-    if button is int:
+    global current_state
+    print(current_state)
+    if isinstance(button, int):
         number_press(button)
     if button in OPERATORS:
         operator_press(button)
@@ -68,6 +53,7 @@ def operator_press(op):
         case State.RESULT:
             # TODO: same as above
             pass
+    update_current_line()
 
 
 def append_first_number(num):
