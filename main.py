@@ -1,18 +1,117 @@
 from tkinter import *
 from tkinter import ttk
 from functools import partial
+from enum import Enum
 
 GRID_LABELS = [
-    [7, 8, 9],
-    [4, 5, 6],
-    [1, 2, 3],
+    ["C", "CE", "^", ""],
+    [7, 8, 9, "÷"],
+    [4, 5, 6, "×"],
+    [1, 2, 3, "-"],
+    [0, ".", "=", "+"]
 ]
 
+OPERATORS = ["+", "-", "×", "÷", "^"]
+
+class State(Enum):
+    FIRST_NUMBER = 1
+    OPERATOR = 2
+    SECOND_NUMBER = 3
+    RESULT = 4
+
+
+current_state = State.FIRST_NUMBER
+first_number = 0
+operator = ""
+second_number = 0
+result = 0
+
+
+def button_press(button):
+    if button is int:
+        number_press(button)
+    if button in OPERATORS:
+        operator_press(button)
+
+
 def number_press(num):
-    if current_line.get():
-        current_line.set(current_line.get() + str(num))
+    global current_state
+    match current_state:
+        case State.FIRST_NUMBER:
+            append_first_number(num)
+        case State.OPERATOR:
+            current_state = State.SECOND_NUMBER
+            append_second_number(num)
+        case State.SECOND_NUMBER:
+            append_second_number(num)
+        case State.RESULT:
+            reset()
+            append_first_number(num)
+
+
+def operator_press(op):
+    global first_number, second_number
+    global operator, current_state
+    match current_state:
+        case State.FIRST_NUMBER:
+            current_state = State.OPERATOR
+            operator = op
+        case State.OPERATOR:
+            operator = op
+        case State.SECOND_NUMBER:
+            # TODO: perform calculation
+            #       set result to first number
+            #       set operator to op
+            #       clear second number
+            #       set state to operator
+            pass
+        case State.RESULT:
+            # TODO: same as above
+            pass
+
+
+def append_first_number(num):
+    global first_number
+    if first_number == 0:
+        first_number = num
     else:
-        current_line.set(str(num))
+        first_number = int(str(first_number) + str(num))
+    update_current_line()
+
+
+def append_second_number(num):
+    global second_number
+    if second_number == 0:
+        second_number = num
+    else:
+        second_number = int(str(second_number) + str(num))
+    update_current_line()
+
+
+def update_current_line():
+    global first_number, second_number
+    global current_state, current_line
+    match current_state:
+        case State.FIRST_NUMBER:
+            current_line.set(str(first_number))
+        case State.OPERATOR:
+            current_line.set(str(first_number))
+        case State.SECOND_NUMBER:
+            current_line.set(str(second_number))
+        case State.RESULT:
+            current_line.set(str(first_number))
+
+
+def reset():
+    global first_number, operator, second_number
+    global current_state, result
+    first_number = 0
+    operator = ""
+    second_number = 0
+    current_state = State.FIRST_NUMBER
+    result = 0
+
+
 
 window = Tk()
 window.title("Calculator")
@@ -29,11 +128,11 @@ complete_line.set("0")
 ttk.Label(frame, textvariable=current_line).grid(row=1, columnspan=3, sticky=E)
 current_line.set("-")
 
-for row in range(3):
-    for column in range(3):
+for row in range(len(GRID_LABELS)):
+    for column in range(len(GRID_LABELS[row])):
         button = ttk.Button(frame,
                             text=str(GRID_LABELS[row][column]),
-                            command=partial(number_press, GRID_LABELS[row][column])
+                            command=partial(button_press, GRID_LABELS[row][column])
                             ).grid(column=column, row=row + 2)
 
 window.mainloop()
