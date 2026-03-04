@@ -13,6 +13,11 @@ GRID_LABELS = [
     [0, ".", "=", "+"]
 ]
 
+CLEAR_BUTTONS = {
+    "CE": "CLEAR_ENTRY",
+    "C": "CLEAR"
+}
+
 OPERATORS = {
     "+": "ADD",
     "-": "SUBTRACT",

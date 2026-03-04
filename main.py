@@ -83,6 +83,30 @@ class Calculator:
         print(self.current_state)
         self.update_lines()
 
+    def clear_press(self, button):
+        if button == "C":
+            self.reset()
+        if button == "CE":
+            match self.current_state:
+                # Reset
+                case State.FIRST_NUMBER:
+                    self.reset()
+                # Remove operator and rewind state
+                # And clear top line
+                case State.OPERATOR:
+                    self.operator = None
+                    self.current_state = State.FIRST_NUMBER
+                    self.update_lines(str(self.first_number))
+                    update_tk_window("", None)
+                # Delete second number and update bottom line
+                case State.SECOND_NUMBER:
+                    self.second_number = None
+                    self.current_state = State.OPERATOR
+                    self.update_lines("")
+                # Delete everything
+                case State.RESULT:
+                    self.reset()
+
     def roll_over(self, op):
         # If an operator is pressed after both numbers are entered,
         # get the result and roll it over to a new calculation
@@ -104,7 +128,9 @@ class Calculator:
                 self.current_state = State.FIRST_NUMBER
         print(self.current_state)
 
-    def update_lines(self):
+    def update_lines(self, forced=False):
+        if isinstance(forced, str):
+            update_tk_window(self.cat_line(), forced)
         match self.current_state:
             case State.FIRST_NUMBER:
                 update_tk_window(None, str(self.first_number))
@@ -144,6 +170,8 @@ def button_press(button):
         calc.operator_press(button)
     if button == "=":
         calc.result_press()
+    if button in CLEAR_BUTTONS:
+        calc.clear_press(button)
 
 def update_tk_window(top_line, bottom_line):
     if top_line is not None:
