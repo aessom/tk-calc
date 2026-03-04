@@ -39,7 +39,6 @@ class Calculator:
                 self.append_second_number(num)
             # Result > (Reset) > First Number
             case State.RESULT:
-                self.advance_state()
                 self.reset()
                 self.append_first_number(num)
         self.update_lines()
@@ -81,6 +80,7 @@ class Calculator:
                 self.first_number = calculate(self.first_number, self.operator, self.second_number)
                 self.result = calculate(self.first_number, self.operator, self.second_number)
         self.current_state = State.RESULT
+        print(self.current_state)
         self.update_lines()
 
     def roll_over(self, op):
@@ -90,6 +90,7 @@ class Calculator:
         self.operator = op
         self.second_number = None
         self.current_state = State.OPERATOR
+        print(self.current_state)
 
     def advance_state(self):
         match self.current_state:
@@ -106,11 +107,11 @@ class Calculator:
     def update_lines(self):
         match self.current_state:
             case State.FIRST_NUMBER:
-                update_tk_window(self.cat_line(), str(self.first_number))
+                update_tk_window(None, str(self.first_number))
             case State.OPERATOR:
                 update_tk_window(self.cat_line(), str(self.first_number))
             case State.SECOND_NUMBER:
-                update_tk_window(self.cat_line(), str(self.second_number))
+                update_tk_window(None, str(self.second_number))
             case State.RESULT:
                 update_tk_window(self.cat_line(), self.result)
 
@@ -127,10 +128,13 @@ class Calculator:
         return line
 
     def reset(self):
+        # Reset to initialized values
+        self.current_state = State.FIRST_NUMBER
         self.first_number = None
         self.operator = None
         self.second_number = None
         self.result = None
+        update_tk_window("", "")
 
 
 def button_press(button):
@@ -142,8 +146,10 @@ def button_press(button):
         calc.result_press()
 
 def update_tk_window(top_line, bottom_line):
-    complete_line.set(top_line)
-    current_line.set(bottom_line)
+    if top_line is not None:
+        complete_line.set(top_line)
+    if bottom_line is not None:
+        current_line.set(bottom_line)
 
 
 calc = Calculator()
