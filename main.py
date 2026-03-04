@@ -63,6 +63,25 @@ class Calculator:
             case State.RESULT:
                 self.roll_over(op)
         self.update_lines()
+    
+    def result_press(self):
+        match self.current_state:
+            # First Number = Result
+            case State.FIRST_NUMBER:
+                self.result = self.first_number
+            # First Number + First Number = Result
+            case State.OPERATOR:
+                self.second_number = self.first_number
+                self.result = calculate(self.first_number, self.operator, self.second_number)
+            # First Number + Second Number = Result
+            case State.SECOND_NUMBER:
+                self.result = calculate(self.first_number, self.operator, self.second_number)
+            # Result + Second Number = Result
+            case State.RESULT:
+                self.first_number = calculate(self.first_number, self.operator, self.second_number)
+                self.result = calculate(self.first_number, self.operator, self.second_number)
+        self.current_state = State.RESULT
+        self.update_lines()
 
     def roll_over(self, op):
         # If an operator is pressed after both numbers are entered,
@@ -87,13 +106,13 @@ class Calculator:
     def update_lines(self):
         match self.current_state:
             case State.FIRST_NUMBER:
-                update_tk_window("", str(self.first_number))
+                update_tk_window(self.cat_line(), str(self.first_number))
             case State.OPERATOR:
-                update_tk_window(str(self.first_number) + self.operator, str(self.first_number))
+                update_tk_window(self.cat_line(), str(self.first_number))
             case State.SECOND_NUMBER:
-                update_tk_window(str(self.first_number) + self.operator, str(self.second_number))
+                update_tk_window(self.cat_line(), str(self.second_number))
             case State.RESULT:
-                update_tk_window(str(self.first_number) + self.operator + str(self.second_number) + "=", self.result)
+                update_tk_window(self.cat_line(), self.result)
 
     def cat_line(self):
         line = ""
@@ -103,6 +122,8 @@ class Calculator:
             line += str(self.operator)
         if self.second_number is not None:
             line += str(self.second_number)
+        if self.current_state == State.RESULT:
+            line += "="
         return line
 
     def reset(self):
@@ -117,6 +138,8 @@ def button_press(button):
         calc.number_press(button)
     if button in OPERATORS:
         calc.operator_press(button)
+    if button == "=":
+        calc.result_press()
 
 def update_tk_window(top_line, bottom_line):
     complete_line.set(top_line)
