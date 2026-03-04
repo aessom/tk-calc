@@ -27,13 +27,17 @@ class Calculator:
 
     def number_press(self, num):
         match self.current_state:
+            # First Number > First Number
             case State.FIRST_NUMBER:
                 self.append_first_number(num)
+            # Operator > Second Number
             case State.OPERATOR:
                 self.advance_state()
                 self.append_second_number(num)
+            # Second Number > Second Number
             case State.SECOND_NUMBER:
                 self.append_second_number(num)
+            # Result > (Reset) > First Number
             case State.RESULT:
                 self.advance_state()
                 self.reset()
@@ -42,21 +46,27 @@ class Calculator:
 
     def operator_press(self, op):
         match self.current_state:
+            # First Number > Operator
             case State.FIRST_NUMBER:
                 self.advance_state()
                 self.operator = op
                 if self.first_number is None:
                     self.first_number = 0
+            # Operator > Operator
             case State.OPERATOR:
                 self.operator = op
+            # Second Number > Result > First Number > Operator
             case State.SECOND_NUMBER:
                 self.result = calculate(self.first_number, self.operator, self.second_number)
                 self.roll_over(op)
+            # Result > First Number > Operator
             case State.RESULT:
                 self.roll_over(op)
         self.update_lines()
 
     def roll_over(self, op):
+        # If an operator is pressed after both numbers are entered,
+        # get the result and roll it over to a new calculation
         self.first_number = self.result
         self.operator = op
         self.second_number = None
