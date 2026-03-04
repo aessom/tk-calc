@@ -2,102 +2,118 @@ from tkinter import *
 from tkinter import ttk
 from functools import partial
 from constants import *
+from calc import calculate
 
-current_state = State.FIRST_NUMBER
-first_number = 0
-operator = ""
-second_number = 0
-result = 0
+
+class Calculator:
+    def __init__(self):
+        self.current_state = State.FIRST_NUMBER
+        self.first_number = None
+        self.operator = None
+        self.second_number = None
+        self.result = None
+    
+    def append_first_number(self, num):
+        if self.first_number is None:
+            self.first_number = num
+        else:
+            self.first_number = int(str(self.first_number) + str(num))
+    
+    def append_second_number(self, num):
+        if self.second_number is None:
+            self.second_number = num
+        else:
+            self.second_number = int(str(self.second_number) + str(num))
+
+    def number_press(self, num):
+        match self.current_state:
+            case State.FIRST_NUMBER:
+                self.append_first_number(num)
+            case State.OPERATOR:
+                self.advance_state()
+                self.append_second_number(num)
+            case State.SECOND_NUMBER:
+                self.append_second_number(num)
+            case State.RESULT:
+                self.advance_state()
+                self.reset()
+                self.append_first_number(num)
+        self.update_lines()
+
+    def operator_press(self, op):
+        match self.current_state:
+            case State.FIRST_NUMBER:
+                self.advance_state()
+                self.operator = op
+                if self.first_number is None:
+                    self.first_number = 0
+            case State.OPERATOR:
+                self.operator = op
+            case State.SECOND_NUMBER:
+                self.result = calculate(self.first_number, self.operator, self.second_number)
+                self.roll_over(op)
+            case State.RESULT:
+                self.roll_over(op)
+        self.update_lines()
+
+    def roll_over(self, op):
+        self.first_number = self.result
+        self.operator = op
+        self.second_number = None
+        self.current_state = State.OPERATOR
+
+    def advance_state(self):
+        match self.current_state:
+            case State.FIRST_NUMBER:
+                self.current_state = State.OPERATOR
+            case State.OPERATOR:
+                self.current_state = State.SECOND_NUMBER
+            case State.SECOND_NUMBER:
+                self.current_state = State.RESULT
+            case State.RESULT:
+                self.current_state = State.FIRST_NUMBER
+        print(self.current_state)
+
+    def update_lines(self):
+        match self.current_state:
+            case State.FIRST_NUMBER:
+                update_tk_window("", str(self.first_number))
+            case State.OPERATOR:
+                update_tk_window(str(self.first_number) + self.operator, str(self.first_number))
+            case State.SECOND_NUMBER:
+                update_tk_window(str(self.first_number) + self.operator, str(self.second_number))
+            case State.RESULT:
+                update_tk_window(str(self.first_number) + self.operator + str(self.second_number) + "=", self.result)
+
+    def cat_line(self):
+        line = ""
+        if self.first_number is not None:
+            line += str(self.first_number)
+        if self.operator is not None:
+            line += str(self.operator)
+        if self.second_number is not None:
+            line += str(self.second_number)
+        return line
+
+    def reset(self):
+        self.first_number = None
+        self.operator = None
+        self.second_number = None
+        self.result = None
 
 
 def button_press(button):
-    global current_state
-    print(current_state)
     if isinstance(button, int):
-        number_press(button)
+        calc.number_press(button)
     if button in OPERATORS:
-        operator_press(button)
+        calc.operator_press(button)
+
+def update_tk_window(top_line, bottom_line):
+    complete_line.set(top_line)
+    current_line.set(bottom_line)
 
 
-def number_press(num):
-    global current_state
-    match current_state:
-        case State.FIRST_NUMBER:
-            append_first_number(num)
-        case State.OPERATOR:
-            current_state = State.SECOND_NUMBER
-            append_second_number(num)
-        case State.SECOND_NUMBER:
-            append_second_number(num)
-        case State.RESULT:
-            reset()
-            append_first_number(num)
-
-
-def operator_press(op):
-    global first_number, second_number
-    global operator, current_state
-    match current_state:
-        case State.FIRST_NUMBER:
-            current_state = State.OPERATOR
-            operator = op
-        case State.OPERATOR:
-            operator = op
-        case State.SECOND_NUMBER:
-            # TODO: perform calculation
-            #       set result to first number
-            #       set operator to op
-            #       clear second number
-            #       set state to operator
-            pass
-        case State.RESULT:
-            # TODO: same as above
-            pass
-    update_current_line()
-
-
-def append_first_number(num):
-    global first_number
-    if first_number == 0:
-        first_number = num
-    else:
-        first_number = int(str(first_number) + str(num))
-    update_current_line()
-
-
-def append_second_number(num):
-    global second_number
-    if second_number == 0:
-        second_number = num
-    else:
-        second_number = int(str(second_number) + str(num))
-    update_current_line()
-
-
-def update_current_line():
-    global first_number, second_number
-    global current_state, current_line
-    match current_state:
-        case State.FIRST_NUMBER:
-            current_line.set(str(first_number))
-        case State.OPERATOR:
-            current_line.set(str(first_number))
-        case State.SECOND_NUMBER:
-            current_line.set(str(second_number))
-        case State.RESULT:
-            current_line.set(str(first_number))
-
-
-def reset():
-    global first_number, operator, second_number
-    global current_state, result
-    first_number = 0
-    operator = ""
-    second_number = 0
-    current_state = State.FIRST_NUMBER
-    result = 0
-
-
+calc = Calculator()
 
 window = Tk()
 window.title("Calculator")
@@ -106,19 +122,18 @@ frame = ttk.Frame(window)
 frame.grid(column=0, row=0, sticky=NSEW)
 
 complete_line = StringVar()
-current_line = StringVar()
-
 ttk.Label(frame, textvariable=complete_line).grid(row=0, columnspan=3, sticky=E)
-complete_line.set("0")
+complete_line.set("")
 
+current_line = StringVar()
 ttk.Label(frame, textvariable=current_line).grid(row=1, columnspan=3, sticky=E)
-current_line.set("-")
+current_line.set("")
 
 for row in range(len(GRID_LABELS)):
     for column in range(len(GRID_LABELS[row])):
         button = ttk.Button(frame,
                             text=str(GRID_LABELS[row][column]),
                             command=partial(button_press, GRID_LABELS[row][column])
-                            ).grid(column=column, row=row + 2)
+                            ).grid(column=column + BUTTON_OFFSET["x"], row=row + BUTTON_OFFSET["y"])
 
 window.mainloop()
