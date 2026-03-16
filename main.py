@@ -45,12 +45,6 @@ class CalculatorGUI:
                 frame.rowconfigure(row + BUTTON_OFFSET["y"], weight=1)
                 frame.columnconfigure(column + BUTTON_OFFSET["x"], weight=1)
 
-    def resize_labels(self, root):
-        label_font = font.nametofont("TkTextFont")
-        label_font.config(size=int(root.width/10))
-        self.complete_line_label.config(font=label_font)
-        self.current_line_label.config(font=label_font)
-
     def button_press(self, button):
         if isinstance(button, int):
             self.calculator.number_press(button)
