@@ -7,6 +7,7 @@ class Calculator:
         self.operator = None
         self.second_number = None
         self.result = None
+        self.memory = None
         self.complete_line = complete_line
         self.current_line = current_line
     
@@ -103,6 +104,45 @@ class Calculator:
                 # Delete everything
                 case State.RESULT:
                     self.reset()
+
+    def memory_press(self, button):
+        if button == "MC":
+            self.memory = None
+
+        if button == "MR":
+            if self.memory:
+                match self.current_state:
+                    # Replace first number
+                    case State.FIRST_NUMBER:
+                        self.first_number = self.memory
+                    # Fill second number and update state
+                    case State.OPERATOR:
+                        self.second_number = self.memory
+                        self.current_state = State.SECOND_NUMBER
+                    # Replace second number
+                    case State.SECOND_NUMBER:
+                        self.second_number = self.memory
+                    # Reset and fill first number
+                    case State.RESULT:
+                        self.reset()
+                        self.first_number = self.memory
+                self.update_lines()
+
+        if button == "MS":
+            match self.current_state:
+                # Store first number
+                case State.FIRST_NUMBER:
+                    self.memory = self.first_number
+                # Store first number
+                case State.OPERATOR:
+                    self.memory = self.first_number
+                # Store second number
+                case State.SECOND_NUMBER:
+                    self.memory = self.second_number
+                # Store result
+                case State.RESULT:
+                    self.memory = self.result
+
 
     def roll_over(self, op):
         # If an operator is pressed after both numbers are entered,

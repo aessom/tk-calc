@@ -6,6 +6,7 @@ BUTTON_OFFSET = {
 }
 
 GRID_LABELS = [
+    ["MC", "MR", "MS", ""],
     ["C", "CE", "^", ""],
     [7, 8, 9, "÷"],
     [4, 5, 6, "×"],
@@ -13,9 +14,15 @@ GRID_LABELS = [
     [0, ".", "=", "+"]
 ]
 
+MEMORY_BUTTONS = {
+    "MC": "MEMORY CLEAR",
+    "MR": "MEMORY RECALL",
+    "MS": "MEMORY STORE",
+}
+
 CLEAR_BUTTONS = {
     "CE": "CLEAR_ENTRY",
-    "C": "CLEAR"
+    "C": "CLEAR",
 }
 
 OPERATORS = {
