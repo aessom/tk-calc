@@ -1,4 +1,5 @@
 from constants import *
+from decimal import *
 
 class Calculator:
     def __init__(self, complete_line, current_line):
@@ -225,9 +226,9 @@ class Calculator:
             self.current_line.set(current_line)
     
     def calculate(self):
-        first_number = float(self.first_number)
-        second_number = float(self.second_number)
-        result = float(0)
+        first_number = Decimal(self.first_number)
+        second_number = Decimal(self.second_number)
+        result = Decimal(0)
         match OPERATORS[self.operator]:
             case "ADD":
                 result = first_number + second_number
