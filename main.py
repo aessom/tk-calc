@@ -56,6 +56,8 @@ class CalculatorGUI:
             self.calculator.clear_press(button)
         if button in MEMORY_BUTTONS:
             self.calculator.memory_press(button)
+        if button == ".":
+            self.calculator.decimal_press()
 
 if __name__ == "__main__":
     root = Tk()

@@ -13,15 +13,15 @@ class Calculator:
     
     def append_first_number(self, num):
         if self.first_number is None:
-            self.first_number = num
+            self.first_number = str(num)
         else:
-            self.first_number = int(str(self.first_number) + str(num))
+            self.first_number = self.first_number + str(num)
     
     def append_second_number(self, num):
         if self.second_number is None:
-            self.second_number = num
+            self.second_number = str(num)
         else:
-            self.second_number = int(str(self.second_number) + str(num))
+            self.second_number = self.second_number + str(num)
 
     def number_press(self, num):
         match self.current_state:
@@ -48,7 +48,7 @@ class Calculator:
                 self.advance_state()
                 self.operator = op
                 if self.first_number is None:
-                    self.first_number = 0
+                    self.first_number = "0"
             # Operator > Operator
             case State.OPERATOR:
                 self.operator = op
@@ -66,7 +66,7 @@ class Calculator:
             # First Number = Result
             case State.FIRST_NUMBER:
                 self.result = self.first_number
-            # First Number + First Number = Result
+            # First Number + First Number = Result 
             case State.OPERATOR:
                 self.second_number = self.first_number
                 self.result = self.calculate()
@@ -94,7 +94,7 @@ class Calculator:
                 case State.OPERATOR:
                     self.operator = None
                     self.current_state = State.FIRST_NUMBER
-                    self.update_lines(str(self.first_number))
+                    self.update_lines(self.first_number)
                     self.update_tk_window("", None)
                 # Delete second number and update bottom line
                 case State.SECOND_NUMBER:
@@ -143,6 +143,25 @@ class Calculator:
                 case State.RESULT:
                     self.memory = self.result
 
+    def decimal_press(self):
+        match self.current_state:
+            # Append
+            case State.FIRST_NUMBER:
+                if "." not in self.first_number:
+                    self.append_first_number(".")
+            # Advance state and append to second number
+            case State.OPERATOR:
+                self.advance_state()
+                self.append_second_number("0.")
+            # Append
+            case State.SECOND_NUMBER:
+                if "." not in self.second_number:
+                    self.append_second_number(".")
+            # Reset and append to first number
+            case State.RESULT:
+                self.reset()
+                self.append_first_number("0.")
+        self.update_lines()
 
     def roll_over(self, op):
         # If an operator is pressed after both numbers are entered,
@@ -170,22 +189,22 @@ class Calculator:
             self.update_tk_window(self.cat_line(), forced)
         match self.current_state:
             case State.FIRST_NUMBER:
-                self.update_tk_window(None, str(self.first_number))
+                self.update_tk_window(None, self.first_number)
             case State.OPERATOR:
-                self.update_tk_window(self.cat_line(), str(self.first_number))
+                self.update_tk_window(self.cat_line(), self.first_number)
             case State.SECOND_NUMBER:
-                self.update_tk_window(None, str(self.second_number))
+                self.update_tk_window(None, self.second_number)
             case State.RESULT:
                 self.update_tk_window(self.cat_line(), self.result)
 
     def cat_line(self):
         line = ""
         if self.first_number is not None:
-            line += str(self.first_number)
+            line += self.first_number
         if self.operator is not None:
-            line += str(self.operator)
+            line += self.operator
         if self.second_number is not None:
-            line += str(self.second_number)
+            line += self.second_number
         if self.current_state == State.RESULT:
             line += "="
         return line
@@ -206,14 +225,24 @@ class Calculator:
             self.current_line.set(current_line)
     
     def calculate(self):
+        first_number = float(self.first_number)
+        second_number = float(self.second_number)
+        result = float(0)
         match OPERATORS[self.operator]:
             case "ADD":
-                return self.first_number + self.second_number
+                result = first_number + second_number
             case "SUBTRACT":
-                return self.first_number - self.second_number
+                result = first_number - second_number
             case "MULTIPLY":
-                return self.first_number * self.second_number
+                result = first_number * second_number
             case "DIVIDE":
-                return self.first_number / self.second_number
+                result = first_number / second_number
             case "EXPONENTIATE":
-                return self.first_number ** self.second_number
+                result = first_number ** second_number
+        return str(self.normalize_float(result))
+            
+    def normalize_float(self, num):
+        if int(num) == num:
+            return int(num)
+        return num
+        
